@@ -55,7 +55,7 @@ MonoBehaviour:
   InvalidObjects:
   - {fileID: 6427289395657165039}
   Mass: 25
-  ConversionEfficiency: 2
+  ConversionEfficiency: 1.8
   MaxThrust: 200
 --- !u!1 &5766923374529435479
 GameObject:

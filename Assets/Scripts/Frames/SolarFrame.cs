@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static Resource;
 
 public class SolarFrame : Frame
 {
@@ -24,9 +25,9 @@ public class SolarFrame : Frame
     public float MaxEff = 1f;
     public float MinEff = 0.5f;
 
-    public override void Supply(ref Dictionary<Resource.ResType, Resource> balance)
+    public override void SupplyIndependent(ref Dictionary<ResType, Resource> demands, ref Dictionary<ResType, Resource> balance)
     {
-        base.Supply(ref balance);
+        base.SupplyIndependent(ref demands, ref balance);
         float modifier = 1f;
         if (transform.position.y < MinHeight)
         {
@@ -40,6 +41,6 @@ public class SolarFrame : Frame
         {
             modifier = 1f;
         }
-        balance[Resource.ResType.Power] += Mathf.RoundToInt(PowerAmount*modifier);
+        balance[ResType.Power] += Mathf.RoundToInt(PowerAmount*modifier);
     }
 }

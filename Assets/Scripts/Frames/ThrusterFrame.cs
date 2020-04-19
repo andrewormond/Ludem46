@@ -1,39 +1,68 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static Resource;
 
 public class ThrusterFrame : Frame
 {
     //thrust/power
     public float ConversionEfficiency = 0.8f;
-    public float MaxThrust = 25;
+    public int MaxThrust = 100;
 
 
-    private int thrustBalance = 0;
     private int powerBalance = 0;
+    private int powerStorage = 0;
 
-    public override void Consume(ref Dictionary<Resource.ResType, Resource> balance)
+
+
+    private void Awake()
+    {
+        powerStorage = Mathf.RoundToInt(MaxThrust / ConversionEfficiency);
+        powerBalance = powerStorage;
+    }
+
+    //Ask to refill internal power storage
+    public override void Demand(ref Dictionary<Resource.ResType, Resource> demands)
+    {
+        base.Demand(ref demands);
+        demands[ResType.Power] += powerStorage - powerBalance;
+    }
+
+    //refill internal power storage
+    public override void Consume(ref Dictionary<ResType, Resource> balance)
     {
         base.Consume(ref balance);
-        int powerCost = Mathf.RoundToInt(MaxThrust / ConversionEfficiency);
-        if (balance[Resource.ResType.Power].amount > powerCost)
+
+        if (balance[ResType.Power].amount > 0 && powerBalance < powerStorage)
         {
-            powerBalance += powerCost;
-            balance[Resource.ResType.Power] -= powerCost;
+            int sup = balance[ResType.Power].amount;
+            if (sup > powerStorage - powerBalance)
+            {
+                sup = powerStorage - powerBalance;
+            }
+            powerBalance += sup;
+            balance[ResType.Power] -= sup;
         }
     }
 
-    public override void Produce(ref Dictionary<Resource.ResType, Resource> balance)
+    //convert power to thrust
+    public override void SupplyProduce(ref Dictionary<ResType, Resource> demands, ref Dictionary<ResType, Resource> balance)
     {
-        base.Produce(ref balance);
-        thrustBalance += Mathf.RoundToInt(powerBalance * ConversionEfficiency);
-        powerBalance = 0;
-    }
+        base.SupplyProduce(ref demands, ref balance);
+        if (balance[ResType.Thrust] < demands[ResType.Thrust])
+        {
+            //The amount of thrust the ship is asking for
+            int demand = (demands[ResType.Thrust] - balance[ResType.Thrust]).amount;
 
-    public override void Supply(ref Dictionary<Resource.ResType, Resource> balance)
-    {
-        base.Supply(ref balance);
-        balance[Resource.ResType.Thrust] += thrustBalance;
-        thrustBalance = 0;
+            //The amount of thrust this frame can create
+            int capacity = Mathf.RoundToInt(powerBalance * ConversionEfficiency);
+            if (demand > capacity)
+            {
+                demand = capacity;
+            }
+
+            balance[ResType.Thrust] += demand;
+            powerBalance -= Mathf.RoundToInt(demand / ConversionEfficiency);
+        }
     }
 }

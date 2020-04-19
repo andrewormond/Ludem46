@@ -1746,6 +1746,8 @@ MonoBehaviour:
     type: 3}
   LiftFramePrefab: {fileID: 5766923374520883170, guid: 84fb531456fb6e742b6eb9ea42bb66b3,
     type: 3}
+  BatteryFramePrefab: {fileID: 3277011965267900443, guid: 1c4ff7f678f96d34b8f151685ca0282a,
+    type: 3}
   allFrames: []
   BoundTop: 3
   BoundBot: -3
@@ -1855,6 +1857,7 @@ MonoBehaviour:
   - {fileID: 2836595245423087573, guid: 23b3121a4318d68429ec715ca92351f9, type: 3}
   - {fileID: 2082210379698839663, guid: 150317b3a01f5e548b00501e782097e9, type: 3}
   - {fileID: 5766923374520883171, guid: 84fb531456fb6e742b6eb9ea42bb66b3, type: 3}
+  - {fileID: 3277011965267900442, guid: 1c4ff7f678f96d34b8f151685ca0282a, type: 3}
   buttonPrefab: {fileID: 4382514516901323340, guid: 9035c43fab857c641a575cd85d65809b,
     type: 3}
 --- !u!114 &1206474229

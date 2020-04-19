@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
@@ -108,39 +109,39 @@ public class Ship : MonoBehaviour
         return true;
     }
 
-    public Dictionary<ResType, Resource> resources = GetInitializedDictionary();
+    //public Dictionary<ResType, Resource> resources = GetInitializedDictionary();
 
-    public void LimitStorage()
-    {
-        for (int i = 0; i < (int)ResType.NumberResources; i++)
-        {
-            ResType type = (ResType)i;
-            int namount = resources[type].amount;
-            if (namount > resources[type].storage) {
-                namount = resources[type].storage;
-                Debug.Log(string.Format("{0} limited from {1} to {2}", type, resources[type].amount, namount));
-            }
-            resources[type] = new Resource(type, namount, 0);
-        }
-    }
+    //public void LimitStorage()
+    //{
+    //    for (int i = 0; i < (int)ResType.NumberResources; i++)
+    //    {
+    //        ResType type = (ResType)i;
+    //        int namount = resources[type].amount;
+    //        if (namount > resources[type].storage) {
+    //            namount = resources[type].storage;
+    //            Debug.Log(string.Format("{0} limited from {1} to {2}", type, resources[type].amount, namount));
+    //        }
+    //        resources[type] = new Resource(type, namount, 0);
+    //    }
+    //}
 
-    public Dictionary<ResType, Resource> CalculateTotalResourceBalance()
-    {
-        LimitStorage();
-        foreach (Frame frame in allFrames)
-        {
-            frame.Supply(ref resources);
-        }
-        foreach (Frame frame in allFrames)
-        {
-            frame.Consume(ref resources);
-        }
-        foreach (Frame frame in allFrames)
-        {
-            frame.Produce(ref resources);
-        }
-        return resources;
-    }
+    //public Dictionary<ResType, Resource> CalculateTotalResourceBalance()
+    //{
+    //    LimitStorage();
+    //    foreach (Frame frame in allFrames)
+    //    {
+    //        frame.Supply(ref resources);
+    //    }
+    //    foreach (Frame frame in allFrames)
+    //    {
+    //        frame.Consume(ref resources);
+    //    }
+    //    foreach (Frame frame in allFrames)
+    //    {
+    //        frame.Produce(ref resources);
+    //    }
+    //    return resources;
+    //}
 
 
 
@@ -169,32 +170,110 @@ public class Ship : MonoBehaviour
         return AltitudeCntrl.Process(setPoint, processVariable, Time.fixedDeltaTime);
     }
 
-    private void FixedUpdate()
+    private int GetMaxThrust()
     {
-        resources = CalculateTotalResourceBalance();
-        foreach (ResType resType in resources.Keys)
+        int sum = 0;
+        foreach (Frame frame in allFrames)
         {
-            Console.Log(resType.ToString(), resources[resType].ToString()) ;
+            if (frame is ThrusterFrame thruster)
+            {
+                sum += thruster.MaxThrust;
+            }
         }
+        return sum;
+    }
 
-        Console.Log("Supported Mass", resources[ResType.Thrust]);
+    private Tuple<int, int> GetPowerStorage()
+    {
+        int balance = 0;
+        int max = 0;
+        foreach (Frame frame in allFrames)
+        {
+            if (frame is BatteryFrame battery)
+            {
+                balance += battery.Storage;
+                max += battery.BatterySize;
+            }
+        }
+        return new Tuple<int, int>(balance, max);
+    }
 
-        Rigidbody rigidbody = GetComponent<Rigidbody>();
-        rigidbody.mass = resources[ResType.Mass].amount;
-        rigidbody.AddForce(new Vector3(0, -9.8f * rigidbody.mass, 0));
-
+    private int GetThrustDemand()
+    {
         throttle = AltitudeController(TargetAltitude, transform.position.y);
         if (throttle > 1f) throttle = 1f;
         if (throttle < 0f) throttle = 0f;
         ThrottleSlider.value = throttle;
         Console.Log("Throttle", throttle);
-        float thrust =  throttle * resources[ResType.Thrust].amount;
-        Console.Log("Thrust", thrust);
-        rigidbody.AddForce(new Vector3(0, thrust*9.8f, 0));
+        int maxThrust = GetMaxThrust();
+        Console.Log("Max Thrust", maxThrust);
+        int thrust = Mathf.RoundToInt( throttle * maxThrust);
+        Console.Log("Thrust Demand", thrust);
+        return thrust;
+    }
+
+    private void FixedUpdate()
+    {
+
+        //1) Calculate Demand for all resources
+        Dictionary<ResType, Resource> demands = GetInitializedDictionary();
+        demands[ResType.Thrust] += GetThrustDemand();
+        foreach (Frame frame in allFrames)
+        {
+            frame.Demand(ref demands);
+        }
+
+        // 2) Supply resources with no dependency
+        Dictionary<ResType, Resource> balance = GetInitializedDictionary();
+        foreach (Frame frame in allFrames)
+        {
+            frame.SupplyIndependent(ref demands, ref balance);
+        }
+
+        // 3) Supply resources from storage
+        foreach (Frame frame in allFrames)
+        {
+            frame.SupplyFromStorage(ref demands, ref balance);
+        }
+
+        // 4) All frames take as many resources as they can
+        foreach (Frame frame in allFrames)
+        {
+            frame.Consume(ref balance);
+        }
+
+        // 5) Perform conversion up to the demand
+        foreach (Frame frame in allFrames)
+        {
+            frame.SupplyProduce(ref demands, ref balance);
+        }
+
+        // 6) Store excess
+        foreach (Frame frame in allFrames)
+        {
+            frame.Store(ref balance);
+        }
+
+        foreach (ResType resType in balance.Keys)
+        {
+            Console.Log("Delta-"+resType.ToString(), (balance[resType] - demands[resType]).ToString()) ;
+        }
+
+
+        Rigidbody rigidbody = GetComponent<Rigidbody>();
+        rigidbody.mass = balance[ResType.Mass].amount;
+
+        Console.Log("Mass", balance[ResType.Mass]);
+        rigidbody.AddForce(new Vector3(0, -9.8f * rigidbody.mass, 0));
+
+
+        Console.Log("Produced Thrust", balance[ResType.Thrust]);
+        rigidbody.AddForce(new Vector3(0, balance[ResType.Thrust].amount * 9.8f, 0));
 
         Console.Log("Altitude", transform.position.y + " m");
 
-
+        (int powerBalance, int powerMax) = GetPowerStorage();
+        Console.Log(ResType.Power.ToString() + " storage", string.Format("{0}/{1}", powerBalance, powerMax));
     }
 
 

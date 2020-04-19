@@ -14,10 +14,33 @@ public class Frame : MonoBehaviour
     public GameObject[] InvalidObjects;
     public int Mass = 10;
 
+    //Each tick:
+    /*
+     * 1) Calculate Demand for all resources
+     * 2) Supply resources with no dependency
+     * 3) Supply resources from storage
+     * 4) All frames take as many resources as they can
+     * 5) Perform conversion up to the demand
+     * 6) Store excess
+     */
 
-    public virtual void Supply(ref Dictionary<ResType, Resource> balance)
+    public virtual void Demand(ref Dictionary<ResType, Resource> demands)
     {
-        balance[ResType.Mass] += new Resource(ResType.Mass, Mass, 0);
+
+    }
+
+    public virtual void SupplyIndependent(ref Dictionary<ResType, Resource> demands, ref Dictionary<ResType, Resource> balance)
+    {
+        balance[ResType.Mass] += new Resource(ResType.Mass, Mass);
+    }
+    public virtual void SupplyFromStorage(ref Dictionary<ResType, Resource> demands, ref Dictionary<ResType, Resource> balance)
+    {
+
+    }
+
+    public virtual void SupplyProduce(ref Dictionary<ResType, Resource> demands, ref Dictionary<ResType, Resource> balance)
+    {
+
     }
 
     public virtual void Consume(ref Dictionary<ResType, Resource> balance)
@@ -26,7 +49,12 @@ public class Frame : MonoBehaviour
     }
 
 
-    public virtual void Produce(ref Dictionary<ResType, Resource> balance)
+    //public virtual void Produce(ref Dictionary<ResType, Resource> balance)
+    //{
+
+    //}
+
+    public virtual void Store(ref Dictionary<ResType, Resource> balance)
     {
 
     }

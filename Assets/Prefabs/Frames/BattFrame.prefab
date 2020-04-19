@@ -144,6 +144,8 @@ MonoBehaviour:
   InvalidObjects:
   - {fileID: 3189289011914408485}
   Mass: 20
+  BatterySize: 10000
+  Storage: 0
 --- !u!1 &5224620653602641395
 GameObject:
   m_ObjectHideFlags: 0
