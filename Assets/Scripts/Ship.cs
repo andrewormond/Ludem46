@@ -11,6 +11,7 @@ public class Ship : MonoBehaviour
     public GameObject GeneratorFramePrefab;
     public GameObject PowerFramePrefab;
     public GameObject LiftFramePrefab;
+    public GameObject BatteryFramePrefab;
 
     public Dictionary<Vector2, Frame> frameGrid = new Dictionary<Vector2, Frame>();
     public List<Frame> allFrames = new List<Frame>();
@@ -77,6 +78,7 @@ public class Ship : MonoBehaviour
     {
         AddFrame(GeneratorFramePrefab, new Vector2(0, 0));
         AddFrame(PowerFramePrefab, new Vector2(1, 0));
+        AddFrame(BatteryFramePrefab, new Vector2(2, 0));
         AddFrame(LiftFramePrefab, new Vector2(-1, 0));
         AddFrame(PowerFramePrefab, new Vector2(-2, 0));
         UpdateBoundaries();
@@ -106,20 +108,36 @@ public class Ship : MonoBehaviour
         return true;
     }
 
-    public Dictionary<ResType, int> resources = GetInitializedDictionary();
+    public Dictionary<ResType, Resource> resources = GetInitializedDictionary();
 
-    public Dictionary<ResType, int> CalculateTotalResourceBalance()
+    public void LimitStorage()
     {
-        //for (int i = 0; i < (int)ResType.NumberResources; i++)
-        //{
-        //    resources[(ResType)i] = 0;
-        //}
-        resources[ResType.Mass] = 0;
-        resources[ResType.Thrust] = 0;
+        for (int i = 0; i < (int)ResType.NumberResources; i++)
+        {
+            ResType type = (ResType)i;
+            int namount = resources[type].amount;
+            if (namount > resources[type].storage) {
+                namount = resources[type].storage;
+                Debug.Log(string.Format("{0} limited from {1} to {2}", type, resources[type].amount, namount));
+            }
+            resources[type] = new Resource(type, namount, 0);
+        }
+    }
 
+    public Dictionary<ResType, Resource> CalculateTotalResourceBalance()
+    {
+        LimitStorage();
         foreach (Frame frame in allFrames)
         {
             frame.Supply(ref resources);
+        }
+        foreach (Frame frame in allFrames)
+        {
+            frame.Consume(ref resources);
+        }
+        foreach (Frame frame in allFrames)
+        {
+            frame.Produce(ref resources);
         }
         return resources;
     }
@@ -156,13 +174,13 @@ public class Ship : MonoBehaviour
         resources = CalculateTotalResourceBalance();
         foreach (ResType resType in resources.Keys)
         {
-            Console.Log(resType.ToString(), resources[resType]);
+            Console.Log(resType.ToString(), resources[resType].ToString()) ;
         }
 
         Console.Log("Supported Mass", resources[ResType.Thrust]);
 
         Rigidbody rigidbody = GetComponent<Rigidbody>();
-        rigidbody.mass = resources[ResType.Mass];
+        rigidbody.mass = resources[ResType.Mass].amount;
         rigidbody.AddForce(new Vector3(0, -9.8f * rigidbody.mass, 0));
 
         throttle = AltitudeController(TargetAltitude, transform.position.y);
@@ -170,11 +188,13 @@ public class Ship : MonoBehaviour
         if (throttle < 0f) throttle = 0f;
         ThrottleSlider.value = throttle;
         Console.Log("Throttle", throttle);
-        float thrust =  throttle * resources[ResType.Thrust];
+        float thrust =  throttle * resources[ResType.Thrust].amount;
         Console.Log("Thrust", thrust);
         rigidbody.AddForce(new Vector3(0, thrust*9.8f, 0));
 
         Console.Log("Altitude", transform.position.y + " m");
+
+
     }
 
 

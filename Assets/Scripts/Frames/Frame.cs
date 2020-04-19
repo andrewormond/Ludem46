@@ -12,28 +12,23 @@ public class Frame : MonoBehaviour
 
     public GameObject[] ValidObjects;
     public GameObject[] InvalidObjects;
-
-    private Ship ship = null;
-
     public int Mass = 10;
 
 
-    public virtual List<Resource> GetResources() //+ adds something to the ship, - removes something
+    public virtual void Supply(ref Dictionary<ResType, Resource> balance)
     {
-        List<Resource> res = new List<Resource>()
-        {
-            new Resource(Resource.ResType.Mass, Mass),
-        };
-        return res;
+        balance[ResType.Mass] += new Resource(ResType.Mass, Mass, 0);
     }
 
-    public virtual void Supply(ref Dictionary<ResType, int> balance)
+    public virtual void Consume(ref Dictionary<ResType, Resource> balance)
     {
-        //consumers will override this
-        foreach(Resource res in GetResources())
-        {
-            balance[res.type] += res.amount;
-        }
+
+    }
+
+
+    public virtual void Produce(ref Dictionary<ResType, Resource> balance)
+    {
+
     }
 
     public virtual Vector2 Location
@@ -60,7 +55,7 @@ public class Frame : MonoBehaviour
     }
 
     public virtual List<Vector2> BlockedOffsets { get => blockedOffsets; }
-    public Ship Ship { get => ship; set => ship = value; }
+    public Ship Ship { get; set; } = null;
     public bool ShowError
     {
         get => showError; set
