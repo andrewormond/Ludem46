@@ -1738,7 +1738,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8feb7eb973bc6ec40b781d8d998aaf69, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  FramePrefab: {fileID: 88075762368334992, guid: 23b3121a4318d68429ec715ca92351f9,
+  EmptyFramePrefab: {fileID: 88075762368334992, guid: 23b3121a4318d68429ec715ca92351f9,
+    type: 3}
+  GeneratorFramePrefab: {fileID: 6105566852824724739, guid: 7b587868b866c5b4ca9713ad39baf20a,
+    type: 3}
+  PowerFramePrefab: {fileID: 2082210379698839648, guid: 150317b3a01f5e548b00501e782097e9,
+    type: 3}
+  LiftFramePrefab: {fileID: 5766923374520883170, guid: 84fb531456fb6e742b6eb9ea42bb66b3,
     type: 3}
   allFrames: []
   BoundTop: 3
@@ -1847,6 +1853,8 @@ MonoBehaviour:
   BuildableFrames:
   - {fileID: 973565430146684142, guid: 7b587868b866c5b4ca9713ad39baf20a, type: 3}
   - {fileID: 2836595245423087573, guid: 23b3121a4318d68429ec715ca92351f9, type: 3}
+  - {fileID: 2082210379698839663, guid: 150317b3a01f5e548b00501e782097e9, type: 3}
+  - {fileID: 5766923374520883171, guid: 84fb531456fb6e742b6eb9ea42bb66b3, type: 3}
   buttonPrefab: {fileID: 4382514516901323340, guid: 9035c43fab857c641a575cd85d65809b,
     type: 3}
 --- !u!114 &1206474229

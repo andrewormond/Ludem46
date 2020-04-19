@@ -7,7 +7,10 @@ using static Resource;
 
 public class Ship : MonoBehaviour
 {
-    public GameObject FramePrefab;
+    public GameObject EmptyFramePrefab;
+    public GameObject GeneratorFramePrefab;
+    public GameObject PowerFramePrefab;
+    public GameObject LiftFramePrefab;
 
     public Dictionary<Vector2, Frame> frameGrid = new Dictionary<Vector2, Frame>();
     public List<Frame> allFrames = new List<Frame>();
@@ -72,10 +75,10 @@ public class Ship : MonoBehaviour
 
     private void Awake()
     {
-        for(int i = BoundLeft; i <= BoundRight; i++)
-        {
-            AddFrame(FramePrefab, new Vector2(i, 0));
-        }
+        AddFrame(GeneratorFramePrefab, new Vector2(0, 0));
+        AddFrame(PowerFramePrefab, new Vector2(1, 0));
+        AddFrame(LiftFramePrefab, new Vector2(-1, 0));
+        AddFrame(PowerFramePrefab, new Vector2(-2, 0));
         UpdateBoundaries();
     }
 
@@ -103,75 +106,20 @@ public class Ship : MonoBehaviour
         return true;
     }
 
-    Dictionary<ResType, int> Balance = GetInitializedDictionary();
+    public Dictionary<ResType, int> resources = GetInitializedDictionary();
 
-    public Dictionary<ResType, int> GetSupply()
+    public Dictionary<ResType, int> CalculateTotalResourceBalance()
     {
-        Dictionary<ResType, int> resources = new Dictionary<ResType, int>();
-        for (int i = 0; i < (int)ResType.NumberResources; i++)
-        {
-            resources[(ResType)i] = 0;
-        }
+        //for (int i = 0; i < (int)ResType.NumberResources; i++)
+        //{
+        //    resources[(ResType)i] = 0;
+        //}
+        resources[ResType.Mass] = 0;
+        resources[ResType.Thrust] = 0;
 
         foreach (Frame frame in allFrames)
         {
-            foreach (Resource res in frame.GetResources())
-            {
-                if (resources.ContainsKey(res.type) && res.amount > 0)
-                {
-                    resources[res.type] += res.amount;
-                }
-            }
-        }
-        return resources;
-    }
-    public Dictionary<ResType, int> GetDemand()
-    {
-        Dictionary<ResType, int> resources = new Dictionary<ResType, int>();
-        for (int i = 0; i < (int)ResType.NumberResources; i++)
-        {
-            resources[(ResType)i] = 0;
-        }
-
-        foreach (Frame frame in allFrames)
-        {
-            foreach (Resource res in frame.GetResources())
-            {
-                if (resources.ContainsKey(res.type) && res.amount < 0)
-                {
-                    resources[res.type] += res.amount;
-                }
-                else
-                {
-                    resources[res.type] = res.amount;
-                }
-            }
-        }
-        return resources;
-    }
-
-
-    public Dictionary<ResType, int> GetTotalResourceBalance()
-    {
-        Dictionary<ResType, int> resources = new Dictionary<ResType, int>();
-        for (int i = 0; i < (int)ResType.NumberResources; i++)
-        {
-            resources[(ResType)i] = 0;
-        }
-
-        foreach (Frame frame in allFrames)
-        {
-            foreach (Resource res in frame.GetResources())
-            {
-                if (resources.ContainsKey(res.type))
-                {
-                    resources[res.type] += res.amount;
-                }
-                else
-                {
-                    resources[res.type] = res.amount;
-                }
-            }
+            frame.Supply(ref resources);
         }
         return resources;
     }
@@ -205,7 +153,7 @@ public class Ship : MonoBehaviour
 
     private void FixedUpdate()
     {
-        resources = GetTotalResourceBalance();
+        resources = CalculateTotalResourceBalance();
         foreach (ResType resType in resources.Keys)
         {
             Console.Log(resType.ToString(), resources[resType]);

@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using static Resource;
 
 public class Frame : MonoBehaviour
 {
@@ -22,9 +23,17 @@ public class Frame : MonoBehaviour
         List<Resource> res = new List<Resource>()
         {
             new Resource(Resource.ResType.Mass, Mass),
-            new Resource(Resource.ResType.Thrust, 20)
         };
         return res;
+    }
+
+    public virtual void Supply(ref Dictionary<ResType, int> balance)
+    {
+        //consumers will override this
+        foreach(Resource res in GetResources())
+        {
+            balance[res.type] += res.amount;
+        }
     }
 
     public virtual Vector2 Location
