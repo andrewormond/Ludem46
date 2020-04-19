@@ -138,7 +138,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 16843badc38ef334ba738c730a2698c7, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  prefixName: Frame
+  prefixName: Battery
   ValidObjects:
   - {fileID: 5224620653602641395}
   InvalidObjects:

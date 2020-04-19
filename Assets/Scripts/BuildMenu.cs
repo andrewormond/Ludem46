@@ -16,7 +16,8 @@ public class BuildMenu : Tool
     public override void Deselect()
     {
         gameObject.SetActive(false);
-        if(ship != null)
+        RemovePreview();
+        if (ship != null)
         {
             ship.BoundaryObject.SetActive(false);
         }
@@ -85,13 +86,11 @@ public class BuildMenu : Tool
                 preview.ShowError = false;
                 bool placeMany = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
 
-                if (Input.GetMouseButtonUp(0))
+                if (Input.GetMouseButtonUp(0) && !placeMany)
                 {
                     ship.AddFrame(preview.gameObject, location);
-                    if (!placeMany)
-                    {
-                        RemovePreview();
-                    }
+                    RemovePreview();
+                    Debug.Log("Single placement");
                 }
                 else if (placeMany && Input.GetMouseButton(0))
                 {
@@ -109,8 +108,13 @@ public class BuildMenu : Tool
     {
         if (preview != null)
         {
+            Debug.Log("Removed preview object: " + preview.gameObject);
             Destroy(preview.gameObject);
             preview = null;
+        }
+        else
+        {
+            Debug.Log("Could not delete preview");
         }
         Console.Log(KEY_PREVIEW, "None");
     }
@@ -122,8 +126,8 @@ public class BuildMenu : Tool
         Frame frame = obj.GetComponent<Frame>();
         obj.transform.SetParent(ship.transform);
         Console.Log(KEY_PREVIEW, frame.prefixName);
-        frame.prefixName = "Preview Frame";
         preview = frame;
+        frame.preview = true;
         frame.ShowError = false;
     }
 }

@@ -24,6 +24,7 @@ public class Ship : MonoBehaviour
     public GameObject BoundaryObject;
     public Slider AltitudeSlider;
     public Slider ThrottleSlider;
+    public Slider PowerSlider;
 
 
     public int BoundWidth
@@ -45,6 +46,7 @@ public class Ship : MonoBehaviour
     {
         GameObject obj = Instantiate(prefab);
         Frame frame = obj.GetComponent<Frame>();
+        frame.preview = false;
         frame.transform.SetParent(transform);
         frame.Location = location;
         foreach(Vector2 loc in frame.GetBlockedLocations())
@@ -195,6 +197,9 @@ public class Ship : MonoBehaviour
                 max += battery.BatterySize;
             }
         }
+        PowerSlider.maxValue = max;
+        PowerSlider.minValue = 0;
+        PowerSlider.value = balance;
         return new Tuple<int, int>(balance, max);
     }
 

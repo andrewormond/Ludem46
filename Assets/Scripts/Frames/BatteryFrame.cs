@@ -17,7 +17,6 @@ public class BatteryFrame : Frame
         
     }
 
-    private bool started = false;
     public int BatterySize = 1000;
     public int Storage;
     private void Awake()

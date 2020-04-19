@@ -9,6 +9,7 @@ public class Frame : MonoBehaviour
     private Vector2 location = new Vector2(0, 0);
 
     public string prefixName = "Frame";
+    public bool preview = false;
 
     public GameObject[] ValidObjects;
     public GameObject[] InvalidObjects;
@@ -65,7 +66,7 @@ public class Frame : MonoBehaviour
         {
             location = value;
             transform.localPosition = value;
-            name = prefixName + ": " + location.ToString();
+            name = (preview ? "Preview of " : "") + prefixName + ": " + location.ToString();
         }
     }
 

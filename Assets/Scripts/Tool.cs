@@ -29,7 +29,12 @@ public abstract class Tool : MonoBehaviour
     public static bool GetMousePositionOnXZPlane(Ship ship, out Vector2 location)
     {
         location = Vector2.zero;
-        if (!IsMouseAvailable()) return false;
+        if (!IsMouseAvailable())
+        {
+            Console.Log("Mouse", "Blocked");
+            return false;
+        }
+
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         if (XYPlane.Raycast(ray, out float distance))
         {
