@@ -17,30 +17,36 @@ public class SolarFrame : Frame
         
     }
 
-    public int PowerAmount = 100;
+    public static int PowerAmount = 100;
 
-    public int MaxHeight = 300;
-    public int MinHeight = 100;
+    public static int MaxHeight = 300;
+    public static int MinHeight = 100;
 
-    public float MaxEff = 1f;
-    public float MinEff = 0.5f;
+    public static float MaxEff = 1f;
+    public static float MinEff = 0.5f;
 
-    public override void SupplyIndependent(ref Dictionary<ResType, Resource> demands, ref Dictionary<ResType, Resource> balance)
+    public static float CalculateEfficiency(float altitude)
     {
-        base.SupplyIndependent(ref demands, ref balance);
         float modifier = 1f;
-        if (transform.position.y < MinHeight)
+        if (altitude < MinHeight)
         {
             modifier = MinEff;
         }
-        else if (transform.position.y < MaxHeight)
+        else if (altitude < MaxHeight)
         {
-            modifier = MinEff + (MaxEff - MinEff) * ((transform.position.y - MinHeight) / (MaxHeight - MinHeight));
+            modifier = MinEff + (MaxEff - MinEff) * ((altitude - MinHeight) / (MaxHeight - MinHeight));
         }
         else
         {
             modifier = 1f;
         }
-        balance[ResType.Power] += Mathf.RoundToInt(PowerAmount*modifier);
+        return modifier;
+    }
+
+    public override void SupplyIndependent(ref Dictionary<ResType, Resource> demands, ref Dictionary<ResType, Resource> balance)
+    {
+        base.SupplyIndependent(ref demands, ref balance);
+        
+        balance[ResType.Power] += Mathf.RoundToInt(PowerAmount* CalculateEfficiency(transform.position.y));
     }
 }

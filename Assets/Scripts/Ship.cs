@@ -25,6 +25,7 @@ public class Ship : MonoBehaviour
     public Slider AltitudeSlider;
     public Slider ThrottleSlider;
     public Slider PowerSlider;
+    public Slider SolarSlider;
 
 
     public int BoundWidth
@@ -153,6 +154,13 @@ public class Ship : MonoBehaviour
         if(AltitudeSlider != null)
         {
             AltitudeSlider.value = transform.position.y;
+        }
+
+        if(SolarSlider != null)
+        {
+            SolarSlider.maxValue = 1;
+            SolarSlider.minValue = 0;
+            SolarSlider.value = SolarFrame.CalculateEfficiency(transform.position.y);
         }
     }
 
