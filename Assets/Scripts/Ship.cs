@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using UnityEngine.UI;
 using static Resource;
 
 public class Ship : MonoBehaviour
@@ -16,7 +17,8 @@ public class Ship : MonoBehaviour
     public int BoundLeft = -3;
     public int BoundRight = 3;
     public GameObject BoundaryObject;
-
+    public Slider AltitudeSlider;
+    public Slider ThrottleSlider;
 
 
     public int BoundWidth
@@ -101,18 +103,65 @@ public class Ship : MonoBehaviour
         return true;
     }
 
+    Dictionary<ResType, int> Balance = GetInitializedDictionary();
 
-    public Dictionary<Resource.ResType, int> GetTotalResourceBalance()
+    public Dictionary<ResType, int> GetSupply()
     {
         Dictionary<ResType, int> resources = new Dictionary<ResType, int>();
-        for(int i = 0; i < (int) ResType.NumberResources; i++)
+        for (int i = 0; i < (int)ResType.NumberResources; i++)
         {
-            resources[(ResType) i] = 0;
+            resources[(ResType)i] = 0;
         }
 
-        foreach(Frame frame in allFrames)
+        foreach (Frame frame in allFrames)
         {
-            foreach(Resource res in frame.GetResources())
+            foreach (Resource res in frame.GetResources())
+            {
+                if (resources.ContainsKey(res.type) && res.amount > 0)
+                {
+                    resources[res.type] += res.amount;
+                }
+            }
+        }
+        return resources;
+    }
+    public Dictionary<ResType, int> GetDemand()
+    {
+        Dictionary<ResType, int> resources = new Dictionary<ResType, int>();
+        for (int i = 0; i < (int)ResType.NumberResources; i++)
+        {
+            resources[(ResType)i] = 0;
+        }
+
+        foreach (Frame frame in allFrames)
+        {
+            foreach (Resource res in frame.GetResources())
+            {
+                if (resources.ContainsKey(res.type) && res.amount < 0)
+                {
+                    resources[res.type] += res.amount;
+                }
+                else
+                {
+                    resources[res.type] = res.amount;
+                }
+            }
+        }
+        return resources;
+    }
+
+
+    public Dictionary<ResType, int> GetTotalResourceBalance()
+    {
+        Dictionary<ResType, int> resources = new Dictionary<ResType, int>();
+        for (int i = 0; i < (int)ResType.NumberResources; i++)
+        {
+            resources[(ResType)i] = 0;
+        }
+
+        foreach (Frame frame in allFrames)
+        {
+            foreach (Resource res in frame.GetResources())
             {
                 if (resources.ContainsKey(res.type))
                 {
@@ -126,11 +175,16 @@ public class Ship : MonoBehaviour
         }
         return resources;
     }
-    Dictionary<ResType, int> resources = Resource.GetInitializedDictionary();
+
+
 
     // Update is called once per frame
     void Update()
     {
+        if(AltitudeSlider != null)
+        {
+            AltitudeSlider.value = transform.position.y;
+        }
     }
 
     public float throttle = 0.5f;
@@ -157,6 +211,8 @@ public class Ship : MonoBehaviour
             Console.Log(resType.ToString(), resources[resType]);
         }
 
+        Console.Log("Supported Mass", resources[ResType.Thrust]);
+
         Rigidbody rigidbody = GetComponent<Rigidbody>();
         rigidbody.mass = resources[ResType.Mass];
         rigidbody.AddForce(new Vector3(0, -9.8f * rigidbody.mass, 0));
@@ -164,6 +220,7 @@ public class Ship : MonoBehaviour
         throttle = AltitudeController(TargetAltitude, transform.position.y);
         if (throttle > 1f) throttle = 1f;
         if (throttle < 0f) throttle = 0f;
+        ThrottleSlider.value = throttle;
         Console.Log("Throttle", throttle);
         float thrust =  throttle * resources[ResType.Thrust];
         Console.Log("Thrust", thrust);
@@ -172,5 +229,10 @@ public class Ship : MonoBehaviour
         Console.Log("Altitude", transform.position.y + " m");
     }
 
+
+    public void SetAltitude(float nalt)
+    {
+        TargetAltitude = nalt;
+    }
 
 }

@@ -7,7 +7,7 @@ Material:
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_Name: Cloud
+  m_Name: WaterTop
   m_Shader: {fileID: 46, guid: 0000000000000000f000000000000000, type: 0}
   m_ShaderKeywords: _ALPHAPREMULTIPLY_ON
   m_LightmapFlags: 4
@@ -62,9 +62,10 @@ Material:
     - _DetailNormalMapScale: 1
     - _DstBlend: 10
     - _GlossMapScale: 1
-    - _Glossiness: 0.5
+    - _Glossiness: 0.632
     - _GlossyReflections: 1
-    - _Metallic: 0
+    - _MaxTriSize: 25
+    - _Metallic: 0.048
     - _Mode: 3
     - _OcclusionStrength: 1
     - _Parallax: 0.02
@@ -72,7 +73,11 @@ Material:
     - _SpecularHighlights: 1
     - _SrcBlend: 1
     - _UVSec: 0
+    - _WireSmoothness: 3
+    - _WireThickness: 100
     - _ZWrite: 0
     m_Colors:
-    - _Color: {r: 0.6132076, g: 0.6132076, b: 0.6132076, a: 0.49019608}
-    - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
+    - _BaseColor: {r: 0, g: 0.32331154, b: 1, a: 1}
+    - _Color: {r: 0, g: 0.2975244, b: 1, a: 0.3254902}
+    - _EmissionColor: {r: 0, g: 0.039997578, b: 1, a: 1}
+    - _WireColor: {r: 0, g: 1, b: 0, a: 1}
