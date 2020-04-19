@@ -14,12 +14,25 @@ public class Frame : MonoBehaviour
 
     private Ship ship = null;
 
+    public int Mass = 10;
+
+
+    public virtual List<Resource> GetResources() //+ adds something to the ship, - removes something
+    {
+        List<Resource> res = new List<Resource>()
+        {
+            new Resource(Resource.ResType.Mass, Mass),
+            new Resource(Resource.ResType.Thrust, 20)
+        };
+        return res;
+    }
+
     public virtual Vector2 Location
     {
         get => location; set
         {
             location = value;
-            transform.position = value;
+            transform.localPosition = value;
             name = prefixName + ": " + location.ToString();
         }
     }

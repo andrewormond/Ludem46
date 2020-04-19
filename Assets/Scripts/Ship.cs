@@ -2,21 +2,22 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
+using static Resource;
 
 public class Ship : MonoBehaviour
 {
     public GameObject FramePrefab;
 
-    public Dictionary<Vector2, Frame> frames;
+    public Dictionary<Vector2, Frame> frameGrid = new Dictionary<Vector2, Frame>();
+    public List<Frame> allFrames = new List<Frame>();
 
-    private const string KEY_PREVIEW = "Selected Frame";
-
-    public Vector2 MaxSize= new Vector2(20, 5);
     public int BoundTop = 2;
     public int BoundBot = -2;
     public int BoundLeft = -3;
     public int BoundRight = 3;
     public GameObject BoundaryObject;
+
+
 
     public int BoundWidth
     {
@@ -37,59 +38,38 @@ public class Ship : MonoBehaviour
     {
         GameObject obj = Instantiate(prefab);
         Frame frame = obj.GetComponent<Frame>();
+        frame.transform.SetParent(transform);
         frame.Location = location;
         foreach(Vector2 loc in frame.GetBlockedLocations())
         {
-            frames.Add(loc, frame);
+            frameGrid.Add(loc, frame);
         }
+        allFrames.Add(frame);
         frame.ShowError = false;
-        frame.transform.SetParent(transform);
     }
 
     public void RemoveFrame(Frame frame)
     {
-        foreach(Vector2 key in frames.Keys)
+        foreach(Vector2 key in frameGrid.Keys)
         {
-            if(frames[key] == frame)
+            if(frameGrid[key] == frame)
             {
-                frames.Remove(key);
+                frameGrid.Remove(key);
             }
         }
+        allFrames.Remove(frame);
         Destroy(frame.gameObject);
     }
 
-    private void RemovePreview()
-    {
-        if (preview != null)
-        {
-            Destroy(preview.gameObject);
-            preview = null;
-        }
-        Console.Log(KEY_PREVIEW, "None");
-    }
-
-    private Frame preview = null;
-    private void SetPreview(Frame prefabFrame)
-    {
-        RemovePreview();
-
-        GameObject obj = Instantiate(prefabFrame.gameObject);
-        Frame frame = obj.GetComponent<Frame>();
-        Console.Log(KEY_PREVIEW, frame.prefixName);
-        frame.prefixName = "Preview Frame";
-        preview = frame;
-        frame.ShowError = false;
-    }
 
     private void UpdateBoundaries()
     {
         BoundaryObject.transform.localScale = new Vector3(BoundWidth, BoundHeight, 0.25f);
-        BoundaryObject.transform.position = new Vector3(BoundLeft + (BoundWidth - 1) /2f, BoundBot + (BoundHeight - 1)/2f);
+        BoundaryObject.transform.localPosition = new Vector3(BoundLeft + (BoundWidth - 1) /2f, BoundBot + (BoundHeight - 1)/2f);
     }
 
     private void Awake()
     {
-        frames = new Dictionary<Vector2, Frame>();
         for(int i = BoundLeft; i <= BoundRight; i++)
         {
             AddFrame(FramePrefab, new Vector2(i, 0));
@@ -103,34 +83,16 @@ public class Ship : MonoBehaviour
         
     }
 
-    static Plane XYPlane = new Plane(Vector3.forward, Vector3.zero);
-
-    public static bool GetMousePositionOnXZPlane(out Vector2 location)
+    public bool isOutOfBounds(Vector2 location)
     {
-        location = Vector2.zero;
-        if (!IsMouseAvailable()) return false;
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        if (XYPlane.Raycast(ray, out float distance))
-        {
-            Vector3 hitPoint = ray.GetPoint(distance);
-            //Just double check to ensure the z position is exactly zero
-            hitPoint.z = 0;
-            location = new Vector2(hitPoint.x, hitPoint.y);
-            return true;
-        }
-        return false;
+        return (location.x < BoundLeft) || (location.x > BoundRight) || (location.y < BoundBot) || (location.y > BoundTop);
     }
 
-    public static bool IsMouseAvailable()
-    {
-        return !MouseInputUIBlocker.BlockedByUI;
-    }
-
-    bool canPlaceFrameHere(Vector2 here, Frame frame)
+    public bool canPlaceFrameHere(Vector2 here, Frame frame)
     {
         foreach (Vector2 offset in frame.BlockedOffsets)
         {
-            if(frames.ContainsKey(offset + here))
+            if(frameGrid.ContainsKey(offset + here) || isOutOfBounds(offset + here))
             {
                 return false;
             }
@@ -139,40 +101,76 @@ public class Ship : MonoBehaviour
         return true;
     }
 
+
+    public Dictionary<Resource.ResType, int> GetTotalResourceBalance()
+    {
+        Dictionary<ResType, int> resources = new Dictionary<ResType, int>();
+        for(int i = 0; i < (int) ResType.NumberResources; i++)
+        {
+            resources[(ResType) i] = 0;
+        }
+
+        foreach(Frame frame in allFrames)
+        {
+            foreach(Resource res in frame.GetResources())
+            {
+                if (resources.ContainsKey(res.type))
+                {
+                    resources[res.type] += res.amount;
+                }
+                else
+                {
+                    resources[res.type] = res.amount;
+                }
+            }
+        }
+        return resources;
+    }
+    Dictionary<ResType, int> resources = Resource.GetInitializedDictionary();
+
     // Update is called once per frame
     void Update()
     {
-        if(preview != null && GetMousePositionOnXZPlane(out Vector2 location))
-        {
-            location = new Vector2(Mathf.Round(location.x), Mathf.Round(location.y));
-            preview.Location = location;
-            if (canPlaceFrameHere(location, preview))
-            {
-                preview.ShowError = false;
-                bool placeMany = Input.GetKey(KeyCode.LeftShift) || Input.GetKey(KeyCode.RightShift);
-
-                if (Input.GetMouseButtonUp(0))
-                {
-                    AddFrame(preview.gameObject, location);
-                    if (!placeMany)
-                    { 
-                        RemovePreview();
-                    }
-                }else if(placeMany && Input.GetMouseButton(0))
-                {
-                    AddFrame(preview.gameObject, location);
-                }
-            }
-            else
-            {
-                preview.ShowError = true;
-            }
-        }
     }
 
-    public void OnBuildClick(Frame prefab)
+    public float throttle = 0.5f;
+    public float TargetAltitude = 35;
+
+    public float P = 0.05f;
+    public float I = 0.00005f;
+    public float D = 0.005f;
+
+    public PID AltitudeCntrl = new PID();
+    private float AltitudeController(float setPoint, float processVariable)
     {
-        SetPreview(prefab);
-        Debug.Log("On build: " + prefab);
+        AltitudeCntrl.P = P;
+        AltitudeCntrl.I = I;
+        AltitudeCntrl.D = D;
+        return AltitudeCntrl.Process(setPoint, processVariable, Time.fixedDeltaTime);
     }
+
+    private void FixedUpdate()
+    {
+        resources = GetTotalResourceBalance();
+        foreach (ResType resType in resources.Keys)
+        {
+            Console.Log(resType.ToString(), resources[resType]);
+        }
+
+        Rigidbody rigidbody = GetComponent<Rigidbody>();
+        rigidbody.mass = resources[ResType.Mass];
+        rigidbody.AddForce(new Vector3(0, -9.8f * rigidbody.mass, 0));
+
+        throttle = AltitudeController(TargetAltitude, transform.position.y);
+        if (throttle > 1f) throttle = 1f;
+        if (throttle < 0f) throttle = 0f;
+        Console.Log("Throttle", throttle);
+        float thrust =  throttle * resources[ResType.Thrust];
+        Console.Log("Thrust", thrust);
+        rigidbody.AddForce(new Vector3(0, thrust*9.8f, 0));
+
+        Console.Log("Altitude", transform.position.y + " m");
+    }
+
+
 }

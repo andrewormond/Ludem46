@@ -39,7 +39,7 @@ public class Console : MonoBehaviour
         string s = "";
         foreach (string key in Entries.Keys)
         {
-            s += string.Format("{0}: {1}", key, Entries[key]) + Environment.NewLine;
+            s += string.Format("{0}: {1}", key, Entries[key]) + Environment.NewLine + Environment.NewLine;
         }
         txt.text = s;
     }

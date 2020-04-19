@@ -15,12 +15,12 @@ namespace UnityTemplateProjects
 
             public void SetFromTransform(Transform t)
             {
-                pitch = t.eulerAngles.x;
-                yaw = t.eulerAngles.y;
-                roll = t.eulerAngles.z;
-                x = t.position.x;
-                y = t.position.y;
-                z = t.position.z;
+                pitch = t.localEulerAngles.x;
+                yaw = t.localEulerAngles.y;
+                roll = t.localEulerAngles.z;
+                x = t.localPosition.x;
+                y = t.localPosition.y;
+                z = t.localPosition.z;
             }
 
             public void Translate(Vector3 translation)
@@ -45,8 +45,8 @@ namespace UnityTemplateProjects
 
             public void UpdateTransform(Transform t)
             {
-                t.eulerAngles = new Vector3(pitch, yaw, roll);
-                t.position = new Vector3(x, y, z);
+                t.localEulerAngles = new Vector3(pitch, yaw, roll);
+                t.localPosition = new Vector3(x, y, z);
             }
         }
         
@@ -109,13 +109,13 @@ namespace UnityTemplateProjects
         void Update()
         {
             // Exit Sample  
-            if (Input.GetKey(KeyCode.Escape))
-            {
-                Application.Quit();
-				#if UNITY_EDITOR
-				UnityEditor.EditorApplication.isPlaying = false; 
-				#endif
-            }
+    //        if (Input.GetKey(KeyCode.Escape))
+    //        {
+    //            Application.Quit();
+				//#if UNITY_EDITOR
+				//UnityEditor.EditorApplication.isPlaying = false; 
+				//#endif
+    //        }
 
             // Hide and lock cursor when right mouse button pressed
             if (Input.GetMouseButtonDown(1))
